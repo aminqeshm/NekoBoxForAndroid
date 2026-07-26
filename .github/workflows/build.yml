@@ -1,20 +1,25 @@
 name: Build NekoBox Android Release
 
 on:
-  push:
-    branches:
-      - main
   schedule:
     - cron: '0 0 * * 0'
   workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git tag/branch to build (a tagged release is recommended, main can be unstable)"
+        required: false
+        default: "1.4.2"
 
 jobs:
   libcore:
     name: Native Build (LibCore)
     runs-on: ubuntu-latest
     steps:
+      # به‌جای main، یک تگ ریلیز مشخص و پایدار چک‌اوت می‌شود
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || '1.4.2' }}
 
       - name: Golang Status
         run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
@@ -48,6 +53,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || '1.4.2' }}
 
       - name: Golang Status
         run: find buildScript libcore/*.sh | xargs cat | sha1sum > golang_status
@@ -87,3 +94,4 @@ jobs:
           name: NekoBox-Release-APK
           path: app/build/outputs/apk/**/*.apk
           retention-days: 14
+          
