@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- ==================== تنظیمات جدید: دکوریشن نودها ==================== -->
+    <PreferenceCategory
+        android:title="Proxy Node Decoration"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            android:key="enableFlagEmoji"
+            android:title="Add country flag emoji to config names"
+            android:summary="Automatically resolve server IP geolocation and append country flag emoji (e.g., 🇺🇸, 🇯🇵) during import/update"
+            android:defaultValue="false" />
+
+        <SwitchPreferenceCompat
+            android:key="enableGeminiMarker"
+            android:title="Mark Gemini-compatible nodes"
+            android:summary="Test nodes with ping &lt; 1000ms against Gemini endpoint and append [Gemini] tag if accessible"
+            android:defaultValue="false" />
+
+    </PreferenceCategory>
+    <!-- =================================================================== -->
+
+</PreferenceScreen>
