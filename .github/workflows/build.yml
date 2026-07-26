@@ -15,10 +15,12 @@ jobs:
     name: Native Build (LibCore)
     runs-on: ubuntu-latest
     steps:
-      # به‌جای main، یک تگ ریلیز مشخص و پایدار چک‌اوت می‌شود
+      # مستقیماً از مخزن رسمی و روی یک تگ ریلیز مشخص چک‌اوت می‌شود
+      # (فورک شما تگ‌های آپ‌استریم را به‌صورت خودکار sync نمی‌کند)
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          repository: MatsuriDayo/NekoBoxForAndroid
           ref: ${{ github.event.inputs.ref || '1.4.2' }}
 
       - name: Golang Status
@@ -54,6 +56,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          repository: MatsuriDayo/NekoBoxForAndroid
           ref: ${{ github.event.inputs.ref || '1.4.2' }}
 
       - name: Golang Status
@@ -94,4 +97,3 @@ jobs:
           name: NekoBox-Release-APK
           path: app/build/outputs/apk/**/*.apk
           retention-days: 14
-          
