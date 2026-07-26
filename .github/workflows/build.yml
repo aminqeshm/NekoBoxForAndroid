@@ -14,12 +14,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ۱. دریافت کامل سورس‌کد به همراه تمامی زیرماژول‌ها (Submodules)
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
+      # ۲. تنظیم JDK 17 (سازگار با Android Gradle Plugin)
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -27,33 +29,52 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      # ۳. تنظیم محیط Go جهت کامپایل هسته Go/sing-box
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
           cache-dependency-path: 'libcore/go.sum'
 
-      - name: Set up Android SDK
+      # ۴. تنظیم Android SDK و نصب NDK مورد نیاز برای CGo/Gomobile
+      - name: Set up Android SDK & NDK
         uses: android-actions/setup-android@v3
 
+      - name: Install Android NDK
+        run: |
+          sudo ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --install "ndk;25.2.9519653"
+          echo "ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/25.2.9519653" >> $GITHUB_ENV
+
+      # ۵. نصب و پیکربندی ابزار Gomobile
       - name: Setup Gomobile
         run: |
           go install golang.org/x/mobile/cmd/gomobile@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
           gomobile init
 
-      # ========== تغییر اصلی: استفاده از Gradle به جای build.sh ==========
+      # ۶. کامپایل استاندارد هسته libcore و تولید فایل libcore.aar
       - name: Build libcore.aar
         run: |
           chmod +x gradlew
-          ./gradlew :libcore:build --no-daemon
-      # ====================================================================
+          export ANDROID_NDK_HOME=${ANDROID_HOME}/ndk/25.2.9519653
+          
+          # بررسی و اجرای اسکریپت ساخت رسمی نکو‌باکس
+          if [ -f "./buildScript/lib/core.sh" ]; then
+            bash ./buildScript/lib/core.sh
+          else
+            # کامپایل مستقیم مستمر با Gomobile در صورت عدم وجود اسکریپت
+            mkdir -p app/libs
+            cd libcore
+            gomobile bind -v -androidapi 21 -tags 'with_conntrack,with_gvisor,with_quic,with_wireguard,with_utls,with_clash_api,with_ech' -o ../app/libs/libcore.aar .
+          fi
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
+      # ۷. اعطای دسترسی اجرایی به gradlew و ساخت APK نهایی
       - name: Build Release APK
-        run: ./gradlew assembleRelease --no-daemon
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
 
+      # ۸. ذخیره و آپلود APK خروجی در بخش Artifacts گیت‌هاب
       - name: Upload Release APK Artifact
         uses: actions/upload-artifact@v4
         with:
